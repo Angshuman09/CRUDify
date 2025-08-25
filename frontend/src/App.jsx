@@ -3,17 +3,18 @@ import { Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import Create from './pages/Create'
 import Navbar from './components/Navbar'
-
+import { ThemeProvider } from './Context/ThemeContext'
+import { ToastContainer } from 'react-toastify'
 function App() {
-
   return (
-    <div className='max-w-7xl h-screen m-auto'>
+    <ThemeProvider>
+      <ToastContainer/>
     <Navbar/>
     <Routes>
       <Route path='/' element={<Home/>}/>
       <Route path='/create' element={<Create/>}/>
     </Routes>
-    </div>
+    </ThemeProvider>
   )
 }
 
