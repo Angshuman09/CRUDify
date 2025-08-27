@@ -37,7 +37,7 @@ export const deleteProducts = async (req,res)=>{
 
         const deletedProduct = await Product.findByIdAndDelete(id);
         if(!deletedProduct){
-            res.status(404).json({success:false, message:"product not found"});
+            return res.status(404).json({success:false, message:"product not found"});
         }
         res.status(200).json({success:true, message:"product deleted successfully"});
         
@@ -57,7 +57,7 @@ export const updateProducts = async (req,res)=>{
 
         const updatedProduct = await Product.findByIdAndUpdate(id,product,{new:true});
         if(!updatedProduct){
-            res.status(404).json({success:false,message:"product not found"});
+            return res.status(404).json({success:false,message:"product not found"});
         }
         res.status(201).json({success:true, data:updatedProduct});
     } catch (error) {
