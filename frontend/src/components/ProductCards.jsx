@@ -8,14 +8,14 @@ import { createPortal } from 'react-dom';
 
 function ProductCards({ product }) {
   const { theme } = useTheme();
-  const { deleteProduct } = useProductStore();
+  const { deleteProduct,updateProduct } = useProductStore();
+  const [updatedProduct, setUpdatedProduct] = useState({
+    name:product.name,
+    price:product.price,
+    image:product.image
+  })
 
   const [edit, setEdit] = useState(false);
-  const [formData, setFormData] = useState({
-    name: product.name,
-    price: product.price,
-    image: product.image
-  });
 
   const deleteHandler = async (pid) => {
     const { success, message } = await deleteProduct(pid);
@@ -26,29 +26,19 @@ function ProductCards({ product }) {
     }
   }
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Add your update logic here using zustand
-    console.log('Updated data:', formData);
+  const closeModal = ()=>{
     setEdit(false);
   }
 
-  const closeModal = () => {
-    setEdit(false);
-    // Reset form data to original values when closing
-    setFormData({
-      name: product.name,
-      price: product.price,
-      image: product.image
-    });
+  const onUpdateHandler = async (pid, updatedProduct)=>{
+    const {success, message} = await updateProduct(pid, updatedProduct);
+    onclose();
+    if(success){
+      toast.success(message);
+      setEdit(false);
+    }else{
+      toast.error(message);
+    }
   }
 
   return (
@@ -100,30 +90,30 @@ function ProductCards({ product }) {
       {/* Modal Portal - Renders outside the card component */}
       {edit && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
+          {/* Backdrop - Transparent/Blurry */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
+            className="absolute inset-0 bg-amber-200 bg-opacity-20 backdrop-blur-sm transition-opacity"
             onClick={closeModal}
           />
           
-          {/* Modal Content */}
-          <div className={`relative w-full max-w-md mx-auto ${theme == 'light' ? 'bg-white' : 'bg-gray-800'} rounded-lg shadow-xl transform transition-all`}>
+          {/* Modal Content - Square shaped */}
+          <div className={`border-amber-900 border-2 relative w-96 h-96 ${theme == 'light' ? 'bg-amber-500' : 'bg-amber-600'} shadow-xl transform transition-all`}>
             {/* Modal Header */}
-            <div className={`flex items-center justify-between p-6 border-b ${theme == 'light' ? 'border-gray-200' : 'border-gray-700'}`}>
-              <h3 className={`text-lg font-semibold ${theme == 'light' ? 'text-gray-900' : 'text-white'}`}>
+            <div className={`flex items-center justify-between p-4 border-b ${theme == 'light' ? 'border-amber-900' : 'border-amber-900'}`}>
+              <h3 className={`text-lg font-semibold ${theme == 'light' ? 'text-slate-800' : 'text-white'}`}>
                 Edit Product
               </h3>
               <button
                 onClick={closeModal}
-                className={`p-2 rounded-full hover:bg-opacity-20 transition-colors ${theme == 'light' ? 'text-gray-400 hover:bg-gray-400 hover:text-gray-600' : 'text-gray-300 hover:bg-gray-300 hover:text-white'}`}
+                className={`p-2 rounded-full hover:bg-opacity-20 transition-colors ${theme == 'light' ? 'text-white hover:bg-amber-700 hover:text-amber-50' : 'text-gray-300 hover:bg-gray-300 hover:text-white'}`}
               >
                 <FaTimes size={16} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-4">
+            <form className="p-4 h-full flex flex-col ">
+              <div className="space-y-4 flex-1">
                 {/* Product Name */}
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${theme == 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
@@ -132,13 +122,9 @@ function ProductCards({ product }) {
                   <input
                     type="text"
                     name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                      theme == 'light' 
-                        ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500' 
-                        : 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                    }`}
+                    value={updatedProduct.name}
+                    onChange={(e)=> setUpdatedProduct({...updatedProduct,name:e.target.value})}
+                    className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-600 transition-colors bg-amber-800 text-amber-100`}
                     placeholder="Enter product name"
                     required
                   />
@@ -152,13 +138,9 @@ function ProductCards({ product }) {
                   <input
                     type="number"
                     name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                      theme == 'light' 
-                        ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500' 
-                        : 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                    }`}
+                    value={updatedProduct.price}
+                    onChange={(e)=>setUpdatedProduct({...updatedProduct,price:e.target.value})}
+                    className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-600 transition-colors bg-amber-800 text-amber-100`}
                     placeholder="Enter price"
                     min="0"
                     step="0.01"
@@ -174,54 +156,30 @@ function ProductCards({ product }) {
                   <input
                     type="url"
                     name="image"
-                    value={formData.image}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                      theme == 'light' 
-                        ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500' 
-                        : 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                    }`}
+                    value={updatedProduct.image}
+                    onChange={(e)=>setUpdatedProduct({...updatedProduct,image:e.target.value})}
+                    className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-600 transition-colors 
+                      bg-amber-800 text-amber-100`}
                     placeholder="Enter image URL"
                     required
                   />
                 </div>
-
-                {/* Image Preview */}
-                {formData.image && (
-                  <div className="mt-4">
-                    <label className={`block text-sm font-medium mb-2 ${theme == 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                      Preview
-                    </label>
-                    <div className="w-full h-32 bg-gray-100 rounded-md overflow-hidden">
-                      <img
-                        src={formData.image}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+              <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    theme == 'light'
-                      ? 'text-gray-700 bg-gray-100 hover:bg-gray-200'
-                      : 'text-gray-300 bg-gray-600 hover:bg-gray-500'
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors bg-pink-100 text-slate-700
+                  hover:bg-pink-200`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-4 py-2 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-700 focus:ring-offset-2"
+                  onClick={()=>onUpdateHandler(product._id,updatedProduct)}
                 >
                   Update Product
                 </button>

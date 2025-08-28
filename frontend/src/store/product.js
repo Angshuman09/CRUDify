@@ -33,10 +33,28 @@ export const useProductStore = create((set)=>({
             method:'DELETE',
         });
 
-        const data = res.json();
-        if(!data) return {success:false, message:data.message};
+        const data = await res.json();
+        if(!data) return {success:false, message:"product not found"};
 
         set(state => ({products: state.products.filter((product)=>product._id != pid)}))
-        return {success:true, message:data.message};
+        return {success:true, message:"product deleted successful"};
+    },
+
+    updateProduct: async (pid, updatedProduct)=>{
+        const res = await fetch( `/api/product/${pid}`,{
+            method:'PUT',
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body:JSON.stringify(updatedProduct)
+        })
+
+        const data = await res.json();
+
+        if(!data) return {success:false, message:"data not found"};
+
+        set((state)=>({products: state.products.map((product)=>product._id==pid?data.data:product)}));
+
+        return {success:true, message:"product updated successful"};
     }
 }))
